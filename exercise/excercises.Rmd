@@ -1,0 +1,367 @@
+---
+title: "R编程练习"
+author: "张金龙"
+date: "2018年6月23日"
+output: 
+  html_document:
+    toc: yes
+    toc_depth: 2
+---
+
+# 1. R对象及基本操作
+
+## 1.1 数据类型与操作
+
+### 1.1.1 运算
+```{R}
+(2+5)*(15-4.1)
+```
+
+### 1.1.2 向量
+```{R}
+aaa <- c("a", "b", "c", 1)
+length(aaa)
+paste(aaa, collapse = "-")
+rep(aaa, c(1,2,1,3))
+```
+### 1.1.3 矩阵
+```{R}
+test <- 1:20
+dim(test) <- c(4, 5)
+dim(test)
+nrow(test)
+ncol(test)
+```
+
+### 1.1.4 数据框
+```{R}
+library(vegan)
+data(dune.env)
+head(dune.env, 5)
+dim(dune.env)
+rownames(dune.env)
+colnames(dune.env)
+dune.env$Moisture
+```
+
+### 1.1.5 列表
+```{R}
+library(vegan)
+data(dune.env)
+list(dune.env$A1, dune.env$Use)
+list(A1 = dune.env$A1, Use = dune.env$Use)
+```
+
+### 1.1.6 下标
+```{R}
+letters[1:6]
+ind <- letters %in% c("a", "c", "f")
+letters[ind]
+library(vegan)
+data(dune.env)
+subset(dune.env, Use == "Haypastu")[1:5,]
+dune.env[dune.env$A1 > 6,]
+dune.env[dune.env$A1 > 3 & dune.env$Use == "Haypastu",]
+```
+
+### 1.1.7 优先等级
+```{R}
+(2 + 3)^2 - (5 + 12)/9 == 20
+```
+
+## 1.2 流程控制
+
+### 1.2.1 if语句
+```{R}
+x = runif(1)
+if(x > 0.5){
+   print("We are going shopping")
+} else {
+   print("Do home work")
+}
+```
+
+### 1.2.2 ifelse语句
+```{R}
+x <- c(6:-4)
+sqrt(x)  #- gives warning
+sqrt(ifelse(x >= 0, x, NA))
+```
+
+### 1.2.3 for循环
+```R
+aaa <- runif(20)
+for (i in 1:length(aaa)){
+   if(aaa[i] > 0.5){
+      print(paste("Number:", i, "The value is less than 0.5"))
+   } else {
+      print(paste("Number:", i, "The value is greater than 0.5"))
+   }
+}
+```
+
+### 1.2.4 while循环
+```{R}
+i = 0
+res = 0
+while(i < 101){
+   res = res + sum(1:i)
+   i = i + 1
+}
+res
+```
+
+### 1.2.5 switch
+```{R}
+centre <- function(x, type) {
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         trimmed = mean(x, trim = .1))
+}
+x <- rcauchy(10)
+centre(x, "mean")
+centre(x, "median")
+```
+
+### 1.2.6 any 与 all
+```{R}
+aaa <- sample(1:100 > 90, 10) # 运算符的优先次序
+all(aaa)
+any(aaa)
+```
+
+### 1.2.7去重复
+```{R}
+b1 <- sample(1:20, 20, replace = TRUE)
+table(b1)
+unique(b1)
+sort(b1)
+```
+
+### 1.2.8 随机抽样
+```{R}
+xxx <- sample(1:100, 10, replace = TRUE)
+table(xxx) # 计算每个数字出现的次数
+```
+
+### 1.2.9 排序sort与order
+```{R}
+library(vegan)
+data(dune.env)
+sort(dune.env$A1)
+# 按照A1的值排序
+dune.env[order(dune.env$A1),]
+```
+
+### 1.2.10 apply
+```{R}
+library(vegan)
+data(BCI)
+apply(BCI,MARGIN = 1, sum ) # 每个样方的个体数
+apply(BCI,MARGIN = 2, sum )[1:10] # 每个种的个体数
+
+# 各因子每个水平下运行函数
+tapply(warpbreaks$breaks, warpbreaks[,-1], sum)
+```
+
+## 1.3 字符串操作
+
+### 1.3.1 BCI样地中，物种名各字母所占比例
+```{R}
+library(vegan)
+data(BCI)
+species <- colnames(BCI)
+all_chars <- paste(species, collapse = "")
+sort(table(strsplit(all_chars, split = "")))
+```
+
+### 1.3.2 输入植物学名，提取属名
+
+```{R}
+species <- "Ginkgo biloba" # 银杏学名
+end.point <- regexpr(" ", species)
+substr(species, 1, end.point - 1)
+```
+
+## 1.4 数据基础操作的几个问题
+* data.frame和matrix有什么区别？
+* data.frame用于哪些情况？
+* 长度不同的vector，能否组成data.frame? 为什么?
+* 怎样判断数据中是否有缺失值?
+* 类型不同的元素，是否能组成vector?
+* 如何提取数据框中的一部分数据?
+
+
+# 2 编写R函数
+
+## 2.1 编写函数，提取植物学名中的属名。
+
+```R
+get_genus <- function(x){
+   end.point <- regexpr(" ", x)
+   genus <- substr(x, 1, end.point - 1)
+   return(genus)
+}
+
+species <- "Ginkgo biloba"
+get_genus(species)
+```
+
+## 2.2 S3方法
+
+```{R}
+# 设定对象的类
+ttt <- runif(5)
+attr(ttt,"class") <- "relinsuo" # 方法1
+class(ttt) <- "relinsuo" # 方法2
+
+# 查看类
+class(ttt)
+
+# 判断是否属于某类
+inherits(ttt,"relinsuo")
+inherits(ttt,"relinsuo1")
+
+# 定义泛型函数
+peixun <- function(x, ...) UseMethod("peixun")
+
+# 定义子函数
+peixun.relinsuo <- function(x) print(paste("Random numbers:", x))
+peixun(ttt)
+
+# 查看一个函数有哪些方法可用
+methods(peixun)
+```
+
+## 2.3 S4方法
+
+```{R}
+# 定义forestplot类
+setClass("forestplot",
+         slots = list(name = "character",
+                      starting_year = "numeric",
+                      area="numeric"))
+# 继承
+setClass("subtropical_forestplot",
+         slots = list(
+           name="character",
+           starting_year = "numeric",
+           area="numeric",
+           longitude="numeric",
+           latitude = "numeric"),
+          contains="forestplot")
+
+# 创建一个S4对象，名叫gutianshan
+gutianshan <- new("subtropical_forestplot",
+                  name="gutianshan",
+                  starting_year = 2006,
+                  area = 24,
+                  longitude = 120,
+                  latitude = 30)
+
+# 创建泛型函数
+setGeneric("age",function(object) standardGeneric("age"))
+
+# 创建子函数
+setMethod("age", signature(object = "subtropical_forestplot"),
+          function(object){
+            cat(paste(object@name, "plot is",
+                      lubridate::year(Sys.Date()) -
+                        object@starting_year),
+                "years old.\n")
+            }
+          )
+
+# 通过调用泛型函数，调用子函数
+age(gutianshan)
+
+# 查看某泛型函数下对应的方法
+showMethods(age)
+
+# 访问S4对象的属性，需要用@
+gutianshan@name
+gutianshan@starting_year
+```
+
+# 3. R Markdown 文档
+
+## 3.1 将本练习文档编译为html
+
+## 3.2 解压缩EcoSimR程序包源代码，并编译成html
+
+## 3.3 用Rstudio编译课程幻灯片的源文件，生成pdf文档
+
+
+# 4. R 程序包的编写
+
+## 4.1 HK80程序包的编译、安装和检查
+
+*  建立.bat文件
+*  编译HK80程序包
+*  检查HK80程序包
+*  编译为Windows Binary程序包
+
+```sh
+cd C:\Users\xxxx
+# 从源代码创建Linux包
+Rcmd build HK80
+# 创建Windows下的包
+Rcmd INSTALL --build HK80
+# 检查程序包是否有问题
+Rcmd check HK80
+Rcmd check --as-cran HK80
+# 安装程序包
+Rcmd INSTALL HK80
+```
+
+## 4.2 创建第一个程序包taxa
+
+将以下函数放入taxa程序包
+```R
+get_genus <- function(x){
+   end.point <- regexpr(" ", x)
+   genus <- substr(x, 1, end.point - 1)
+   return(genus)
+}
+```
+
+```R
+# Example
+species <- "Ginkgo biloba"
+get_genus(species)
+```
+
+操作步骤：
+
+*  用 `package.skeleton("taxa")` 创建taxa程序包
+*  将`get_genus`函数放入程序包taxa中
+*  修改Description文件
+*  修改NAMESPACE文件
+*  修改Rd文件，将Example放入Rd文件中
+*  在本地检查并安装 taxa 包
+
+# 5. 用git进行版本控制和github
+
+*  在github上注册
+*  创建一个项目taxa
+*  `git clone http://github.com/your_user_name/taxa`上的项目
+*  将taxa程序包添加到工作路径
+*  `git status` 查看修改状态
+*  `git commit -m "Intial Comit"`
+*  `git push` 上传到github
+*  用`devtools::install_github()`安装github上的taxa程序包
+
+
+# 6. 问题讨论
+
+ 1.  HK80程序包有什么问题？
+ 2.  为什么要用testthat程序包？
+ 3.  为什么会有人愿意在github上分享代码，后果是什么？
+ 4.  程序包为什么要有许可证？ MIT许可证和GNU-GPL许可证有什么不同？
+ 5.  评价一个程序包主要看什么？
+ 6.  为什么R程序包没有GUI？ 这有什么好处， 有什么坏处？
+ 7.  如果有很多函数，但是开发人员只希望用户看到其中几个重要的函数， 应该怎么办？
+ 8.  为什么不能用word撰写R的帮助文件？
+ 9.  为什么要用git？ git和svn有什么不同？
+ 10.  Rstudio编辑器有什么好处， 有什么不足？

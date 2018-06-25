@@ -1,0 +1,12 @@
+Package: HK80
+Type: Package
+Title: Conversion Tools for HK80 Geographical Coordinate System
+Version: 0.0.2
+Date: 2016-07-25
+Authors@R: person("Jinlong", "Zhang", role = c("aut", "cre"),
+             email = "jinlongzhang01@gmail.com")
+Author: Jinlong Zhang [aut, cre]
+Maintainer: Jinlong Zhang <jinlongzhang01@gmail.com>
+Description: This is a collection of functions for converting coordinates between WGS84UTM, WGS84GEO, HK80UTM, HK80GEO and HK1980GRID Coordinate Systems used in Hong Kong SAR, based on the algorithms described in Explanatory Notes on Geodetic Datums in Hong Kong by Survey and Mapping Office Lands Department, Hong Kong Government (1995).
+License: GPL-2
+URL: https://github.com/helixcn/

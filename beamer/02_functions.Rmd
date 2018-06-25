@@ -1,0 +1,326 @@
+---
+title: "R语言编程概述：3. 编写R函数"
+author: "张金龙"
+date: "2018年6月23日"
+header-includes:
+  - \usepackage{ctex}
+output:
+  beamer_presentation:
+    latex_engine: xelatex
+    theme: "Boadilla"
+    colortheme: "seahorse"
+---
+# 纯文本文件的编码
+
+* ASCII： 纯英文字母与数字等
+* GB18030： 中文
+* GB2312： 中文（已不推荐）
+* GBK： 中文（已不推荐）
+* UTF-8： 通用语言，可显示绝大部分语言的字符
+
+R函数和R帮助文档，只能用纯ASCII字符编写，用ASCII或者UTF-8编码。不能出现其他语言的字符。
+
+# 函数
+
+函数是对一些程序语句的封装。一个函数往往完成一项特定的功能，例如，求标准差sd、求平均值、绘图等。
+
+编写函数，可以减少重复书写代码，R脚本程序更为清晰、简洁。
+
+函数的结构：
+
+* 函数头
+  - 函数名
+  - 指向函数名的 `<- function()` 标识
+  - 小括号内的参数
+
+* 函数体：花括号以内的部分
+
+```r
+   myfunction <- function(arg1, arg2, ... ){
+      statements
+      return(object)
+   }
+```
+
+# 函数名
+
+*  除了用在apply或replicate中的函数之外，大部分函数都应该有适当的名称。
+
+*  因为函数也是R的对象，所以要遵循R对象命名的规则，__最好用英文字母开头，不能用数字开头__。
+
+*  函数名中不要有非ASCII码的字符。
+
+# 参数和参数命名
+
+定义函数时，参数为形式参数， 并没有真正运行。但是：
+
+* 参数本身是有顺序的，各参数之间用逗号间隔。
+* 参数本身是有名称的， 名称要符合R对象的命名规则。
+* 参数本身是可以传递的，如...。
+* 参数可以有默认值
+
+给参数起名时，应将其看做普通的R对象，参数名称最好能表明其意义。运行函数时参数都将作为普通R对象处理。
+
+# 参数默认值
+在定义函数时，指定的参数的值称为默认值，如:
+```R
+pd <- function (samp, tree, include.root = TRUE)
+{
+    if (is.null(tree$edge.length)) {
+        stop("Tree has no branch lengths, cannot compute pd")
+    }
+    if (include.root) {
+        if (!is.rooted(tree)) {
+            stop("Rooted tree required to calculate PD
+                  with include.root=TRUE argument")
+        }
+        tree <- node.age(tree)
+    }
+    ...
+}
+```
+
+# 参数传递
+
+由于变量的作用域不同。每一个函数的参数，理论上都应该只用在自己的函数体中。
+
+但有时在函数体中调用的函数参数过多， 例如points.default函数：
+
+```R
+points.default <- function (x, y = NULL, type = "p", ...) {
+    plot.xy(xy.coords(x, y), type = type, ...)
+}
+```
+其中`...`称为参数传递。在声明中使用`...`, 用户可以直接在调用`points.default`函数时，使用`plot.xy`的所有参数。
+
+# 使用其他程序包中的函数
+
+在R脚本中，用`library()`导入需要的程序包， 再直接调用该程序包的函数即可。
+
+但是在R函数中，使用其他程序包的函数，最好指明函数或者数据的来源。
+
+例如，某函数中要用到vegan程序包的`vegdist`函数，那么在函数中，最好用::指明函数是在vegan程序包中, 格式为：`vegan::vegdist()`
+
+程序包中是否能使用其他程序包中的函数，还涉及到程序包的命名空间`NAMESPACE`等。
+
+# 返回值 return
+
+函数都是为了完成一定的功能，如计算、绘图、生成文件等。
+
+以用于计算的函数为例，运行函数时，用户输入数据后，函数需要提供相应结果，这个结果就是返回值。
+
+* 大部分函数都需要有返回值。
+
+* 返回值只能是一个对象，不能是多个对象。这里的对象类型包括
+vector, matrix, dataframe, list等。
+
+* 如果要返回的结果包含多个对象，则需要放入一个list中。
+
+# 异常及其处理
+
+用户提供的参数不一定能满足函数运行的要求，例如用户提供了错误的数据类型，或者提供的参数的范围不符合要求。
+
+例如除数为一个字符串类型，此时需要报错：
+```R
+> 12/"a"
+Error in 12/"a" : non-numeric argument to binary operator
+```
+
+# 不同严重程度的异常
+
+*  如果输入的参数经过类型转换等，函数能够正常运行，此时用`warning()`提示用户数据格式不服， 但是经过了转换即可。
+
+*  如果函数内部运行时遇到的错误十分严重，函数不能再运行，就要用`stop()`终止运行，并告诉用户哪里错了，应该输入什么类型的数据等。
+
+*  若只希望用户看到一些信息，用`message()`即可。
+
+```R
+stop()
+warning()
+message()
+```
+编写函数时， 应该考虑各种可能的异常情况。
+
+# 编写高效的函数
+
+1. 要向量化
+2. 尽量避免使用循环，如果一定要用到循环，循环中不宜多次读写特别大的数据
+3. 尽量将数据的访问和读写等调整到循环之外
+
+```{R}
+a <- runif(10)
+b <- 20
+a * b
+```
+
+# 面向对象编程：类 Class
+
+以一定形式组织起来的数据构成了类。如冰淇淋，有甜筒、雪糕等； 水饺，有三鲜、鸡蛋韭菜、玉米等多种，但是统称为水饺。
+
+同理，数据结构固定的R对象，也可以归为一类 Class。
+
+例如，用ape::read.tree读取的进化树，类型为phylo
+```{R}
+library(ape)
+data(bird.orders)
+class(bird.orders)
+```
+
+# 类 Class 以APE的 phylo为例
+
+ape程序包中，读取的进化树均为phylo类型。每个phylo对象的本质都是一个list，包括如下基本组件：
+
+*  `edge`：拓扑关系
+*  `Nnode`：节点数
+*  `tip.label`：物种名
+*  `edge.length`：枝长
+
+# APE的 phylo 类
+```{R}
+str(bird.orders)
+names(bird.orders)
+```
+
+# 泛函数和子函数
+
+*  遇到类型为`phylo`的数据结构，如果用户调用了`plot`，R就会主动调用`plot.phylo`函数完成绘图。
+*  这里`plot`称为泛型函数
+*  `plot.phylo`称为子函数。
+
+查看plot有多少种子函数
+```{R}
+methods("plot")[1:10] # 只显示前十个
+```
+R会根据数据的类型class，用不同的子函数处理。这就是为什么有些数据直接绘制箱线图，有些直接绘制散点图。
+
+# S3面向对象编程: 设定class
+
+通过以上方式实现面向对象编程的方法，称为S3方法，S3在R中应用最为广泛。
+
+```{R} 
+# 设定对象的类
+ttt <- round(runif(5), 3)
+attr(ttt,"class") <- "relinsuo" # 方法1
+class(ttt) <- "relinsuo"        # 方法2
+class(ttt)                      # 查看类
+inherits(ttt,"relinsuo")        # 判断是否属于某类
+```
+
+# S3面向对象编程：定义泛型函数和子函数
+
+```{R}
+# 设定泛型函数
+peixun <- function(x, ...) UseMethod("peixun")
+
+# 定义子函数
+peixun.relinsuo <- function(x) {
+  print(paste("Random numbers:", x))
+}
+peixun(ttt)
+```
+
+# S3面向对象编程：查看泛型函数有哪些子函数
+
+```{R}
+methods(peixun)
+```
+如果泛型函数已经定义了，如plot, 则直接定义子函数即可。
+
+# S4面向对象编程:创建类
+
+S3面向对象编程简单直接，但是很容易引入错误。
+
+为了更好地实现面向对象编程，Chambers等人引入了S4。
+
+```{R}
+# 设置forestplot类
+setClass("forestplot",
+         slots = list(name = "character",
+                      starting_year = "numeric",
+                      area="numeric"))
+```
+
+# S4面向对象编程: 继承
+
+当某一种新的对象，与已经定义好的数据有类似的数据结构，即可用继承的方式，生成新的类。继承保证了前一种对象对应的所有函数在新的类中都可以使用。
+
+```{R}
+setClass("subtropical_forestplot",
+         slots = list(
+           name="character",
+           starting_year = "numeric",
+           area="numeric",
+           longitude="numeric",
+           latitude = "numeric"),
+          contains="forestplot")
+```
+
+# S4面向对象编程: 创建泛型函数
+
+```{R}
+# 实例化， 创建一个S4对象，名叫gutianshan
+gutianshan <- new("subtropical_forestplot",
+                  name="gutianshan",
+                  starting_year = 2006,
+                  area = 24,
+                  longitude = 120,
+                  latitude = 30)
+
+# 创建泛型函数
+setGeneric("age",function(object) standardGeneric("age"))
+```
+
+# S4面向对象编程：创建子函数
+
+为什么要创建子函数？
+
+```{R}
+# 创建子函数
+setMethod("age", signature(object = "subtropical_forestplot"),
+          function(object){
+            cat(paste(object@name, "plot is",
+                      lubridate::year(Sys.Date()) -
+                        object@starting_year),
+                "years old.\n")
+            }
+          )
+```
+
+# S4面向对象编程：S4调用
+
+```{R}
+# 通过调用泛型函数，调用子函数
+age(gutianshan)
+
+# 查看某泛型函数下对应的方法
+showMethods(age)
+
+# 访问S4对象的属性，需要用@
+gutianshan@name
+gutianshan@starting_year
+```
+
+Bioconductor网站要求程序包用S4。
+
+# 编程风格 Programming Style
+
+目的：便于阅读，结构清晰，减少注释
+
+* R 脚本在开头处注明脚本的目的、作者、日期
+* 所需要的程序包总在最开始处集中导入，避免在脚本中部导入程序包
+* 变量命名：主要用名词，要能表述变量的含义，减少用a、b、x等命名变量
+* 函数命名：函数用动词
+* 缩进：按照一定的层次缩进
+* 括号、引号的配对：书写时，输入对应括号，再在括号里面编写
+* 运算符号前后要有空格
+* 除非是S3类，在对象名中少用`"."`
+* 变量命名等前后风格要一致
+* 适当注释，宜注释为什么，而不是做什么
+
+参考：https://nanx.me/rstyle/
+
+#   
+
+\begin{center}
+\LARGE{\textbf{练习与答疑}}
+\end{center}

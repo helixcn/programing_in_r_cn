@@ -1,0 +1,3 @@
+Rcmd INSTALL --build HK80
+PAUSE
+
