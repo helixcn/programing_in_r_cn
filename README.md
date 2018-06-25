@@ -23,14 +23,14 @@ R语言编程概述
 
 # 四 注意事项
 
-*  因全部材料为本人辛苦收集整理和编写，若将本材料用于教训，不得删除著者姓名。
+*  因全部材料为本人辛苦收集整理和编写，若将本材料用于教学、培训，不得删除著者姓名。
 *  若以本课程内容作为参考，请在参考文献中列出本课程源代码网址 （https://github.com/helixcn/programing_in_r_cn/），以保证为最新版本
 *  请自尊自重，勿上传到其他论坛或网站用于赚取积分
 *  引用格式
 
 英文
 
-Zhang Jinlong (2018) An Introduction to Programming using R 
+Zhang Jinlong (2018) An Introduction to Programming using R (https://github.com/helixcn/programing_in_r_cn/)
 
 中文
 
